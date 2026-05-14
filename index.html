@@ -79,7 +79,7 @@
       padding: 12px 18px 12px 12px;
       white-space: nowrap;
     }
-    .row-logo { width: 62px; height: 62px; object-fit: contain; flex-shrink: 0; }
+    .row-logo { width: 40px; height: 40px; object-fit: contain; flex-shrink: 0; }
     .row-name { font-size: 1rem; font-weight: 700; line-height: 1.2; }
     .row-record { font-size: 0.8rem; color: #8b949e; margin-top: 3px; }
 
@@ -446,7 +446,6 @@
     list.forEach(t => {
       h += `<th>
         <img class="col-logo" src="${esc(t.logo)}" alt="${esc(t.name)}" onerror="this.style.opacity=0.15">
-        <div class="col-abbr">${esc(abbr(t.name))}</div>
       </th>`;
     });
     h += '</tr></thead><tbody>';
