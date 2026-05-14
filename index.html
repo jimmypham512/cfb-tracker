@@ -583,49 +583,107 @@
   }
 
   // ── ADD TEAM MODAL ───────────────────────────────────────────────────────
-  let espnTeams    = null;
+  const ALL_TEAMS = [
+    { name: 'Air Force',         fullName: 'Air Force Falcons',              id: 2005 },
+    { name: 'Alabama',           fullName: 'Alabama Crimson Tide',           id: 333  },
+    { name: 'Appalachian State', fullName: 'Appalachian State Mountaineers', id: 2026 },
+    { name: 'Arizona',           fullName: 'Arizona Wildcats',               id: 12   },
+    { name: 'Arizona State',     fullName: 'Arizona State Sun Devils',       id: 9    },
+    { name: 'Arkansas',          fullName: 'Arkansas Razorbacks',            id: 8    },
+    { name: 'Army',              fullName: 'Army Black Knights',             id: 349  },
+    { name: 'Auburn',            fullName: 'Auburn Tigers',                  id: 2    },
+    { name: 'Baylor',            fullName: 'Baylor Bears',                   id: 239  },
+    { name: 'Boise State',       fullName: 'Boise State Broncos',            id: 68   },
+    { name: 'Boston College',    fullName: 'Boston College Eagles',          id: 103  },
+    { name: 'BYU',               fullName: 'BYU Cougars',                    id: 252  },
+    { name: 'Cal',               fullName: 'California Golden Bears',        id: 25   },
+    { name: 'Cincinnati',        fullName: 'Cincinnati Bearcats',            id: 2132 },
+    { name: 'Clemson',           fullName: 'Clemson Tigers',                 id: 228  },
+    { name: 'Colorado',          fullName: 'Colorado Buffaloes',             id: 38   },
+    { name: 'Colorado State',    fullName: 'Colorado State Rams',            id: 36   },
+    { name: 'Duke',              fullName: 'Duke Blue Devils',               id: 150  },
+    { name: 'Florida',           fullName: 'Florida Gators',                 id: 57   },
+    { name: 'Florida State',     fullName: 'Florida State Seminoles',        id: 52   },
+    { name: 'Fresno State',      fullName: 'Fresno State Bulldogs',          id: 278  },
+    { name: 'Georgia',           fullName: 'Georgia Bulldogs',               id: 61   },
+    { name: 'Georgia Tech',      fullName: 'Georgia Tech Yellow Jackets',    id: 59   },
+    { name: 'Hawaii',            fullName: 'Hawaii Rainbow Warriors',        id: 62   },
+    { name: 'Houston',           fullName: 'Houston Cougars',                id: 248  },
+    { name: 'Illinois',          fullName: 'Illinois Fighting Illini',       id: 356  },
+    { name: 'Indiana',           fullName: 'Indiana Hoosiers',               id: 84   },
+    { name: 'Iowa',              fullName: 'Iowa Hawkeyes',                  id: 2294 },
+    { name: 'Iowa State',        fullName: 'Iowa State Cyclones',            id: 66   },
+    { name: 'Kansas',            fullName: 'Kansas Jayhawks',                id: 2305 },
+    { name: 'Kansas State',      fullName: 'Kansas State Wildcats',          id: 2306 },
+    { name: 'Kentucky',          fullName: 'Kentucky Wildcats',              id: 96   },
+    { name: 'Louisiana',         fullName: 'Louisiana Ragin Cajuns',         id: 309  },
+    { name: 'Louisville',        fullName: 'Louisville Cardinals',           id: 97   },
+    { name: 'LSU',               fullName: 'LSU Tigers',                     id: 99   },
+    { name: 'Marshall',          fullName: 'Marshall Thundering Herd',       id: 116  },
+    { name: 'Maryland',          fullName: 'Maryland Terrapins',             id: 120  },
+    { name: 'Memphis',           fullName: 'Memphis Tigers',                 id: 235  },
+    { name: 'Miami',             fullName: 'Miami Hurricanes',               id: 2390 },
+    { name: 'Michigan',          fullName: 'Michigan Wolverines',            id: 130  },
+    { name: 'Michigan State',    fullName: 'Michigan State Spartans',        id: 127  },
+    { name: 'Minnesota',         fullName: 'Minnesota Golden Gophers',       id: 135  },
+    { name: 'Mississippi State', fullName: 'Mississippi State Bulldogs',     id: 344  },
+    { name: 'Missouri',          fullName: 'Missouri Tigers',                id: 142  },
+    { name: 'NC State',          fullName: 'NC State Wolfpack',              id: 152  },
+    { name: 'Nebraska',          fullName: 'Nebraska Cornhuskers',           id: 158  },
+    { name: 'Nevada',            fullName: 'Nevada Wolf Pack',               id: 2440 },
+    { name: 'North Carolina',    fullName: 'North Carolina Tar Heels',       id: 153  },
+    { name: 'Northwestern',      fullName: 'Northwestern Wildcats',          id: 77   },
+    { name: 'Notre Dame',        fullName: 'Notre Dame Fighting Irish',      id: 87   },
+    { name: 'Ohio State',        fullName: 'Ohio State Buckeyes',            id: 194  },
+    { name: 'Oklahoma',          fullName: 'Oklahoma Sooners',               id: 201  },
+    { name: 'Oklahoma State',    fullName: 'Oklahoma State Cowboys',         id: 197  },
+    { name: 'Ole Miss',          fullName: 'Ole Miss Rebels',                id: 145  },
+    { name: 'Oregon',            fullName: 'Oregon Ducks',                   id: 2483 },
+    { name: 'Oregon State',      fullName: 'Oregon State Beavers',           id: 204  },
+    { name: 'Penn State',        fullName: 'Penn State Nittany Lions',       id: 213  },
+    { name: 'Pittsburgh',        fullName: 'Pittsburgh Panthers',            id: 221  },
+    { name: 'Purdue',            fullName: 'Purdue Boilermakers',            id: 2528 },
+    { name: 'Rutgers',           fullName: 'Rutgers Scarlet Knights',        id: 164  },
+    { name: 'San Diego State',   fullName: 'San Diego State Aztecs',         id: 21   },
+    { name: 'San Jose State',    fullName: 'San Jose State Spartans',        id: 23   },
+    { name: 'SMU',               fullName: 'SMU Mustangs',                   id: 2567 },
+    { name: 'South Carolina',    fullName: 'South Carolina Gamecocks',       id: 2579 },
+    { name: 'Stanford',          fullName: 'Stanford Cardinal',              id: 24   },
+    { name: 'Syracuse',          fullName: 'Syracuse Orange',                id: 183  },
+    { name: 'TCU',               fullName: 'TCU Horned Frogs',               id: 2628 },
+    { name: 'Tennessee',         fullName: 'Tennessee Volunteers',           id: 2633 },
+    { name: 'Texas',             fullName: 'Texas Longhorns',                id: 251  },
+    { name: 'Texas A&M',         fullName: 'Texas A&M Aggies',               id: 245  },
+    { name: 'Texas Tech',        fullName: 'Texas Tech Red Raiders',         id: 2641 },
+    { name: 'Tulane',            fullName: 'Tulane Green Wave',              id: 2655 },
+    { name: 'Tulsa',             fullName: 'Tulsa Golden Hurricane',         id: 202  },
+    { name: 'UCF',               fullName: 'UCF Knights',                    id: 2116 },
+    { name: 'UCLA',              fullName: 'UCLA Bruins',                    id: 26   },
+    { name: 'UNLV',              fullName: 'UNLV Rebels',                    id: 2439 },
+    { name: 'USC',               fullName: 'USC Trojans',                    id: 30   },
+    { name: 'USF',               fullName: 'USF Bulls',                      id: 58   },
+    { name: 'Utah',              fullName: 'Utah Utes',                      id: 254  },
+    { name: 'Utah State',        fullName: 'Utah State Aggies',              id: 328  },
+    { name: 'Vanderbilt',        fullName: 'Vanderbilt Commodores',          id: 238  },
+    { name: 'Virginia',          fullName: 'Virginia Cavaliers',             id: 258  },
+    { name: 'Virginia Tech',     fullName: 'Virginia Tech Hokies',           id: 259  },
+    { name: 'Wake Forest',       fullName: 'Wake Forest Demon Deacons',      id: 154  },
+    { name: 'Washington',        fullName: 'Washington Huskies',             id: 264  },
+    { name: 'Washington State',  fullName: 'Washington State Cougars',       id: 265  },
+    { name: 'West Virginia',     fullName: 'West Virginia Mountaineers',     id: 277  },
+    { name: 'Wisconsin',         fullName: 'Wisconsin Badgers',              id: 275  },
+    { name: 'Wyoming',           fullName: 'Wyoming Cowboys',                id: 2751 },
+  ].map(t => ({ ...t, logo: `https://a.espncdn.com/i/teamlogos/ncaa/500/${t.id}.png` }));
+
   let filteredList = [];
   let selectedTeam = null;
 
-  let espnFetchPromise = null;
-
-  function fetchESPNTeams() {
-    if (espnTeams !== null) return Promise.resolve();
-    if (espnFetchPromise) return espnFetchPromise;
-    espnFetchPromise = fetch('https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams?limit=1000')
-      .then(r => r.json())
-      .then(data => {
-        espnTeams = data.sports[0].leagues[0].teams
-          .map(t => ({
-            name:     t.team.shortDisplayName || t.team.displayName,
-            fullName: t.team.displayName,
-            logo:     t.team.logos?.[0]?.href || ''
-          }))
-          .filter(t => t.logo)
-          .sort((a, b) => a.name.localeCompare(b.name));
-      })
-      .catch(() => { espnTeams = []; });
-    return espnFetchPromise;
-  }
-
-  async function filterTeams() {
+  function filterTeams() {
     const q   = document.getElementById('team-search-input').value.trim().toLowerCase();
     const res = document.getElementById('team-results');
     if (!q) { res.innerHTML = ''; res.classList.add('hidden'); return; }
 
-    if (!espnTeams) {
-      res.innerHTML = '<div class="loading-teams">Loading teams...</div>';
-      res.classList.remove('hidden');
-      await fetchESPNTeams();
-    }
-
-    if (!espnTeams?.length) {
-      res.innerHTML = '<div class="no-results">Could not load teams</div>';
-      res.classList.remove('hidden');
-      return;
-    }
-
-    filteredList = espnTeams
+    filteredList = ALL_TEAMS
       .filter(t => t.name.toLowerCase().includes(q) || t.fullName.toLowerCase().includes(q))
       .slice(0, 12);
 
@@ -668,7 +726,6 @@
     document.getElementById('team-results').classList.add('hidden');
     document.getElementById('selected-display').classList.add('hidden');
     document.getElementById('add-modal').classList.remove('hidden');
-    fetchESPNTeams();
     setTimeout(() => document.getElementById('team-search-input').focus(), 50);
   }
 
