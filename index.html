@@ -584,6 +584,7 @@
 
   // ── ADD TEAM MODAL ───────────────────────────────────────────────────────
   const ALL_TEAMS = [
+    // Power conferences
     { name: 'Air Force',         fullName: 'Air Force Falcons',              id: 2005 },
     { name: 'Alabama',           fullName: 'Alabama Crimson Tide',           id: 333  },
     { name: 'Appalachian State', fullName: 'Appalachian State Mountaineers', id: 2026 },
@@ -631,6 +632,7 @@
     { name: 'NC State',          fullName: 'NC State Wolfpack',              id: 152  },
     { name: 'Nebraska',          fullName: 'Nebraska Cornhuskers',           id: 158  },
     { name: 'Nevada',            fullName: 'Nevada Wolf Pack',               id: 2440 },
+    { name: 'New Mexico',        fullName: 'New Mexico Lobos',               id: 167  },
     { name: 'North Carolina',    fullName: 'North Carolina Tar Heels',       id: 153  },
     { name: 'Northwestern',      fullName: 'Northwestern Wildcats',          id: 77   },
     { name: 'Notre Dame',        fullName: 'Notre Dame Fighting Irish',      id: 87   },
@@ -673,6 +675,49 @@
     { name: 'West Virginia',     fullName: 'West Virginia Mountaineers',     id: 277  },
     { name: 'Wisconsin',         fullName: 'Wisconsin Badgers',              id: 275  },
     { name: 'Wyoming',           fullName: 'Wyoming Cowboys',                id: 2751 },
+    // MAC
+    { name: 'Akron',             fullName: 'Akron Zips',                     id: 2006 },
+    { name: 'Ball State',        fullName: 'Ball State Cardinals',           id: 2050 },
+    { name: 'Bowling Green',     fullName: 'Bowling Green Falcons',          id: 189  },
+    { name: 'Buffalo',           fullName: 'Buffalo Bulls',                  id: 2084 },
+    { name: 'Central Michigan',  fullName: 'Central Michigan Chippewas',     id: 2117 },
+    { name: 'Eastern Michigan',  fullName: 'Eastern Michigan Eagles',        id: 2199 },
+    { name: 'Kent State',        fullName: 'Kent State Golden Flashes',      id: 2309 },
+    { name: 'Miami Ohio',        fullName: 'Miami (OH) RedHawks',            id: 193  },
+    { name: 'Northern Illinois', fullName: 'Northern Illinois Huskies',      id: 2459 },
+    { name: 'Ohio',              fullName: 'Ohio Bobcats',                   id: 195  },
+    { name: 'Toledo',            fullName: 'Toledo Rockets',                 id: 2649 },
+    { name: 'Western Michigan',  fullName: 'Western Michigan Broncos',       id: 2711 },
+    // Sun Belt
+    { name: 'Arkansas State',    fullName: 'Arkansas State Red Wolves',      id: 2032 },
+    { name: 'Coastal Carolina',  fullName: 'Coastal Carolina Chanticleers',  id: 324  },
+    { name: 'Georgia Southern',  fullName: 'Georgia Southern Eagles',        id: 290  },
+    { name: 'Georgia State',     fullName: 'Georgia State Panthers',         id: 2247 },
+    { name: 'James Madison',     fullName: 'James Madison Dukes',            id: 2235 },
+    { name: 'Louisiana Monroe',  fullName: 'Louisiana Monroe Warhawks',      id: 2433 },
+    { name: 'Old Dominion',      fullName: 'Old Dominion Monarchs',          id: 2748 },
+    { name: 'South Alabama',     fullName: 'South Alabama Jaguars',          id: 6    },
+    { name: 'Southern Miss',     fullName: 'Southern Miss Golden Eagles',    id: 2572 },
+    { name: 'Texas State',       fullName: 'Texas State Bobcats',            id: 326  },
+    { name: 'Troy',              fullName: 'Troy Trojans',                   id: 2653 },
+    // AAC / CUSA / Independents
+    { name: 'Charlotte',         fullName: 'Charlotte 49ers',                id: 2429 },
+    { name: 'East Carolina',     fullName: 'East Carolina Pirates',          id: 151  },
+    { name: 'Florida Atlantic',  fullName: 'Florida Atlantic Owls',          id: 2229 },
+    { name: 'Jacksonville State',fullName: 'Jacksonville State Gamecocks',   id: 55   },
+    { name: 'Liberty',           fullName: 'Liberty Flames',                 id: 2335 },
+    { name: 'Louisiana Tech',    fullName: 'Louisiana Tech Bulldogs',        id: 2348 },
+    { name: 'Middle Tennessee',  fullName: 'Middle Tennessee Blue Raiders',  id: 2393 },
+    { name: 'Navy',              fullName: 'Navy Midshipmen',                id: 2426 },
+    { name: 'New Mexico State',  fullName: 'New Mexico State Aggies',        id: 2423 },
+    { name: 'North Texas',       fullName: 'North Texas Mean Green',         id: 249  },
+    { name: 'Rice',              fullName: 'Rice Owls',                      id: 242  },
+    { name: 'Sam Houston',       fullName: 'Sam Houston Bearkats',           id: 2534 },
+    { name: 'Temple',            fullName: 'Temple Owls',                    id: 218  },
+    { name: 'UConn',             fullName: 'UConn Huskies',                  id: 41   },
+    { name: 'UTEP',              fullName: 'UTEP Miners',                    id: 2638 },
+    { name: 'UTSA',              fullName: 'UTSA Roadrunners',               id: 2949 },
+    { name: 'Western Kentucky',  fullName: 'Western Kentucky Hilltoppers',   id: 98   },
   ].map(t => ({ ...t, logo: `https://a.espncdn.com/i/teamlogos/ncaa/500/${t.id}.png` }));
 
   let filteredList = [];
