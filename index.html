@@ -340,6 +340,23 @@
 <div class="section-label">Standings</div>
 <div id="standings-container"></div>
 
+<!-- Team options modal -->
+<div class="modal-overlay hidden" id="team-modal">
+  <div class="modal">
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+      <img id="team-modal-logo" src="" alt="" style="width:48px;height:48px;object-fit:contain;">
+      <div>
+        <div style="font-size:1.1rem;font-weight:700;" id="team-modal-name"></div>
+        <div style="font-size:0.8rem;color:#6e7681;" id="team-modal-record"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeTeamModal()">Cancel</button>
+      <button class="btn-clear" onclick="confirmRemoveTeam()">Remove Team</button>
+    </div>
+  </div>
+</div>
+
 <!-- Result modal -->
 <div class="modal-overlay hidden" id="result-modal">
   <div class="modal">
@@ -454,7 +471,7 @@
       const rec = getRecord(row.id);
       h += `<tr>
         <td class="row-header">
-          <div class="row-header-inner">
+          <div class="row-header-inner" onclick="openTeamModal('${row.id}')" style="cursor:pointer;">
             <img class="row-logo" src="${esc(row.logo)}" alt="${esc(row.name)}" onerror="this.style.opacity=0.15">
             <div>
               <div class="row-name">${esc(row.name)}</div>
@@ -532,6 +549,41 @@
     h += '</tbody></table>';
     document.getElementById('standings-container').innerHTML = h;
   }
+
+  // ── TEAM MODAL ───────────────────────────────────────────────────────────
+  let activeTeamId = null;
+
+  function openTeamModal(teamId) {
+    activeTeamId = teamId;
+    const t   = teams[teamId];
+    const rec = getRecord(teamId);
+    document.getElementById('team-modal-logo').src          = t.logo;
+    document.getElementById('team-modal-name').textContent  = t.name;
+    document.getElementById('team-modal-record').textContent = `${rec.w}W – ${rec.l}L · ${rec.gp} games played`;
+    document.getElementById('team-modal').classList.remove('hidden');
+  }
+
+  function closeTeamModal() {
+    document.getElementById('team-modal').classList.add('hidden');
+    activeTeamId = null;
+  }
+
+  function confirmRemoveTeam() {
+    if (!activeTeamId) return;
+    const name = teams[activeTeamId]?.name;
+    if (!confirm(`Remove ${name} and all their results? This cannot be undone.`)) return;
+    const updates = {};
+    updates[`/teams/${activeTeamId}`] = null;
+    Object.entries(results).forEach(([key, r]) => {
+      if (r.a === activeTeamId || r.b === activeTeamId) updates[`/results/${key}`] = null;
+    });
+    db.ref('/').update(updates);
+    closeTeamModal();
+  }
+
+  document.getElementById('team-modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeTeamModal();
+  });
 
   // ── RESULT MODAL ────────────────────────────────────────────────────────
   function openResult(aId, bId) {
