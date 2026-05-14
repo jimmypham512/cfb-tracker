@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dad League Grill and Chill CFB</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d1117;
+      color: #e6edf3;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      padding: 28px 24px;
+    }
+
+    .hidden { display: none !important; }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    h1 { font-size: 1.5rem; font-weight: 700; color: #fff; }
+    .subtitle { font-size: 0.85rem; color: #6e7681; margin-bottom: 28px; }
+
+    .btn-add {
+      background: #238636;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-add:hover { background: #2ea043; }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #6e7681;
+      margin-bottom: 12px;
+      margin-top: 36px;
+    }
+
+    /* Matrix */
+    .matrix-scroll { overflow-x: auto; }
+
+    table.matrix { border-collapse: separate; border-spacing: 0; }
+
+    table.matrix thead th {
+      padding: 6px 6px 10px;
+      text-align: center;
+      vertical-align: bottom;
+      min-width: 62px;
+    }
+    table.matrix thead th:first-child { min-width: 220px; text-align: left; }
+
+    .col-logo { width: 36px; height: 36px; object-fit: contain; display: block; margin: 0 auto 4px; }
+    .col-abbr { font-size: 0.6rem; color: #6e7681; text-align: center; font-weight: 600; letter-spacing: 0.5px; }
+
+    table.matrix tbody tr { border-top: 5px solid #0d1117; }
+    table.matrix tbody td { background: #161b22; }
+    table.matrix tbody tr:hover td { background: #1c2128; }
+
+    td.row-header { padding: 0; }
+    .row-header-inner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 18px 12px 12px;
+      white-space: nowrap;
+    }
+    .row-logo { width: 62px; height: 62px; object-fit: contain; flex-shrink: 0; }
+    .row-name { font-size: 1rem; font-weight: 700; line-height: 1.2; }
+    .row-record { font-size: 0.8rem; color: #8b949e; margin-top: 3px; }
+
+    td.cell {
+      text-align: center;
+      vertical-align: middle;
+      padding: 10px 6px;
+      cursor: pointer;
+    }
+    td.cell:hover .badge { filter: brightness(1.25); }
+    td.cell:hover .pending { color: #6e7681; }
+    td.self-cell { cursor: default; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      font-weight: 800;
+      font-size: 0.9rem;
+      transition: filter 0.1s;
+    }
+    .w { background: #1a7f3c; color: #fff; }
+    .l { background: #9e2020; color: #fff; }
+    .pending {
+      color: #30363d;
+      font-size: 1.6rem;
+      font-weight: 300;
+      line-height: 38px;
+      display: inline-block;
+      width: 38px;
+      height: 38px;
+      text-align: center;
+      transition: color 0.1s;
+    }
+    .self {
+      color: #21262d;
+      font-size: 1.1rem;
+      display: inline-block;
+      width: 38px;
+      height: 38px;
+      line-height: 38px;
+      background: #0d1117;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    /* Standings */
+    table.standings { border-collapse: collapse; width: 100%; max-width: 500px; }
+    table.standings thead th {
+      text-align: left;
+      padding: 7px 14px;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #6e7681;
+      border-bottom: 1px solid #21262d;
+      font-weight: 600;
+    }
+    table.standings thead th.num { text-align: center; }
+    table.standings tbody tr { border-bottom: 1px solid #161b22; }
+    table.standings tbody tr:hover { background: #161b22; }
+    table.standings tbody td { padding: 9px 14px; font-size: 0.88rem; }
+    table.standings tbody td.num { text-align: center; color: #8b949e; font-size: 0.85rem; }
+
+    .team-cell { display: flex; align-items: center; gap: 10px; }
+    .s-logo { width: 26px; height: 26px; object-fit: contain; }
+    .rank-num { color: #6e7681; font-size: 0.8rem; width: 18px; text-align: right; }
+    .pct { color: #8b949e; }
+    .bar-wrap {
+      width: 80px; height: 6px;
+      background: #21262d;
+      border-radius: 3px;
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+    .bar-fill { height: 100%; background: #1a7f3c; border-radius: 3px; }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+    .modal {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 24px;
+      width: 100%;
+      max-width: 400px;
+    }
+    .modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+    .modal-sub { font-size: 0.8rem; color: #6e7681; margin-bottom: 20px; }
+
+    /* Team pick buttons */
+    .team-buttons { display: flex; gap: 12px; margin-bottom: 16px; }
+    .team-btn {
+      flex: 1;
+      background: #21262d;
+      border: 2px solid #30363d;
+      border-radius: 10px;
+      padding: 14px 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: #e6edf3;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .team-btn:hover { border-color: #238636; background: #1c2128; }
+    .team-btn img { width: 52px; height: 52px; object-fit: contain; }
+    .team-btn span { font-size: 0.85rem; font-weight: 600; text-align: center; line-height: 1.3; }
+
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .btn-cancel {
+      background: transparent;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .btn-cancel:hover { border-color: #8b949e; color: #e6edf3; }
+    .btn-clear {
+      background: transparent;
+      border: 1px solid #9e2020;
+      color: #f85149;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .btn-clear:hover { background: #9e2020; color: #fff; }
+
+    /* Form */
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: #8b949e;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .form-group input {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 9px 12px;
+      color: #e6edf3;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .form-group input:focus { border-color: #388bfd; }
+
+    .logo-preview {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-preview img { width: 42px; height: 42px; object-fit: contain; }
+    .logo-preview span { font-size: 0.8rem; color: #8b949e; }
+
+    .btn-submit {
+      background: #238636;
+      border: none;
+      color: #fff;
+      padding: 9px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .btn-submit:hover { background: #2ea043; }
+
+    .empty-state {
+      color: #6e7681;
+      font-size: 0.9rem;
+      padding: 48px 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Dad League Grill and Chill CFB</h1>
+    <p class="subtitle" id="subtitle">&nbsp;</p>
+  </div>
+  <button class="btn-add" onclick="openAddTeam()">+ Add Team</button>
+</div>
+
+<div class="section-label">Match Matrix</div>
+<div class="matrix-scroll" id="matrix-container">
+  <p class="empty-state">Loading...</p>
+</div>
+
+<div class="section-label">Standings</div>
+<div id="standings-container"></div>
+
+<!-- Result modal -->
+<div class="modal-overlay hidden" id="result-modal">
+  <div class="modal">
+    <h2 id="result-title">Enter Result</h2>
+    <p class="modal-sub">Select the winner</p>
+    <div class="team-buttons" id="team-buttons"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeResultModal()">Cancel</button>
+      <button class="btn-clear hidden" id="btn-clear" onclick="clearResult()">Clear Result</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add team modal -->
+<div class="modal-overlay hidden" id="add-modal">
+  <div class="modal">
+    <h2>Add Team</h2>
+    <p class="modal-sub">Enter the school name and logo URL</p>
+    <div class="form-group">
+      <label>School Name</label>
+      <input type="text" id="team-name-input" placeholder="e.g. Notre Dame" oninput="updatePreview()">
+    </div>
+    <div class="form-group">
+      <label>Logo URL</label>
+      <input type="text" id="team-logo-input" placeholder="https://..." oninput="updatePreview()">
+      <div class="logo-preview hidden" id="logo-preview">
+        <img id="preview-img" src="" alt="preview">
+        <span id="preview-label">Preview</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeAddModal()">Cancel</button>
+      <button class="btn-submit" onclick="submitTeam()">Add Team</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── PASTE YOUR FIREBASE CONFIG HERE ──────────────────────────────────────
+  const firebaseConfig = {
+    apiKey:            "AIzaSyBdJwWvwtJ_OGxWvlIBR_4jBpJILMJq21I",
+    authDomain:        "dad-league-grill-and-chill-cfb.firebaseapp.com",
+    databaseURL:       "https://dad-league-grill-and-chill-cfb-default-rtdb.firebaseio.com",
+    projectId:         "dad-league-grill-and-chill-cfb",
+    storageBucket:     "dad-league-grill-and-chill-cfb.firebasestorage.app",
+    messagingSenderId: "167479873997",
+    appId:             "1:167479873997:web:4643218dc824a6c209f484"
+  };
+  // ─────────────────────────────────────────────────────────────────────────
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  let teams   = {};
+  let results = {};
+  let pending = null; // { teamAId, teamBId, key }
+
+  db.ref('/').on('value', snap => {
+    const data = snap.val() || {};
+    teams   = data.teams   || {};
+    results = data.results || {};
+    render();
+  });
+
+  function rKey(id1, id2) {
+    return [id1, id2].sort().join('__');
+  }
+
+  function sortedTeams() {
+    return Object.entries(teams)
+      .sort((a, b) => (a[1].addedAt || 0) - (b[1].addedAt || 0))
+      .map(([id, d]) => ({ id, ...d }));
+  }
+
+  function getRecord(teamId) {
+    let w = 0, l = 0;
+    Object.values(results).forEach(r => {
+      if (r.a === teamId || r.b === teamId) {
+        r.winner === teamId ? w++ : l++;
+      }
+    });
+    return { w, l, gp: w + l };
+  }
+
+  // ── RENDER ──────────────────────────────────────────────────────────────
+  function render() {
+    const list = sortedTeams();
+    const total  = list.length * (list.length - 1) / 2;
+    const played = Object.keys(results).length;
+    document.getElementById('subtitle').textContent =
+      list.length
+        ? `${list.length} teams · ${played} of ${total} matchups played`
+        : 'No teams yet — add one to get started.';
+    renderMatrix(list);
+    renderStandings(list);
+  }
+
+  function abbr(name) {
+    return name.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 4);
+  }
+
+  function renderMatrix(list) {
+    if (!list.length) {
+      document.getElementById('matrix-container').innerHTML =
+        '<p class="empty-state">Add teams to get started.</p>';
+      return;
+    }
+
+    let h = '<table class="matrix"><thead><tr><th></th>';
+    list.forEach(t => {
+      h += `<th>
+        <img class="col-logo" src="${esc(t.logo)}" alt="${esc(t.name)}" onerror="this.style.opacity=0.15">
+        <div class="col-abbr">${esc(abbr(t.name))}</div>
+      </th>`;
+    });
+    h += '</tr></thead><tbody>';
+
+    list.forEach(row => {
+      const rec = getRecord(row.id);
+      h += `<tr>
+        <td class="row-header">
+          <div class="row-header-inner">
+            <img class="row-logo" src="${esc(row.logo)}" alt="${esc(row.name)}" onerror="this.style.opacity=0.15">
+            <div>
+              <div class="row-name">${esc(row.name)}</div>
+              <div class="row-record">${rec.w} – ${rec.l}</div>
+            </div>
+          </div>
+        </td>`;
+
+      list.forEach(col => {
+        if (row.id === col.id) {
+          h += `<td class="cell self-cell"><span class="self">✕</span></td>`;
+        } else {
+          const key = rKey(row.id, col.id);
+          const r   = results[key];
+          let badge;
+          if (r) {
+            badge = r.winner === row.id
+              ? `<span class="badge w">W</span>`
+              : `<span class="badge l">L</span>`;
+          } else {
+            badge = `<span class="pending">—</span>`;
+          }
+          h += `<td class="cell" onclick="openResult('${row.id}','${col.id}')">${badge}</td>`;
+        }
+      });
+
+      h += '</tr>';
+    });
+
+    h += '</tbody></table>';
+    document.getElementById('matrix-container').innerHTML = h;
+  }
+
+  function renderStandings(list) {
+    if (!list.length) {
+      document.getElementById('standings-container').innerHTML = '';
+      return;
+    }
+
+    const rows = list
+      .map(t => ({ ...t, ...getRecord(t.id) }))
+      .sort((a, b) => {
+        const pa = a.gp ? a.w / a.gp : -1;
+        const pb = b.gp ? b.w / b.gp : -1;
+        return pb !== pa ? pb - pa : b.w - a.w;
+      });
+
+    let h = `<table class="standings">
+      <thead><tr>
+        <th>#</th><th>Team</th>
+        <th class="num">W</th><th class="num">L</th><th class="num">GP</th>
+        <th>Win %</th>
+      </tr></thead><tbody>`;
+
+    rows.forEach((t, i) => {
+      const pct    = t.gp ? t.w / t.gp : null;
+      const pctStr = pct === null ? '—' : pct.toFixed(3).replace(/^0/, '');
+      const barW   = pct !== null ? (pct * 100).toFixed(1) : 0;
+      const bar    = pct !== null
+        ? `<span class="bar-wrap"><span class="bar-fill" style="width:${barW}%"></span></span>`
+        : '';
+      h += `<tr>
+        <td class="rank-num">${i + 1}</td>
+        <td><div class="team-cell">
+          <img class="s-logo" src="${esc(t.logo)}" alt="${esc(t.name)}" onerror="this.style.opacity=0.15">
+          <span>${esc(t.name)}</span>
+        </div></td>
+        <td class="num">${t.w}</td>
+        <td class="num">${t.l}</td>
+        <td class="num">${t.gp}</td>
+        <td><span class="pct">${pctStr}</span>${bar}</td>
+      </tr>`;
+    });
+
+    h += '</tbody></table>';
+    document.getElementById('standings-container').innerHTML = h;
+  }
+
+  // ── RESULT MODAL ────────────────────────────────────────────────────────
+  function openResult(aId, bId) {
+    const key      = rKey(aId, bId);
+    const existing = results[key];
+    pending        = { aId, bId, key };
+
+    document.getElementById('result-title').textContent = existing ? 'Edit Result' : 'Enter Result';
+    existing
+      ? document.getElementById('btn-clear').classList.remove('hidden')
+      : document.getElementById('btn-clear').classList.add('hidden');
+
+    const ta = teams[aId], tb = teams[bId];
+    document.getElementById('team-buttons').innerHTML = `
+      <button class="team-btn" onclick="submitResult('${aId}')">
+        <img src="${esc(ta.logo)}" alt="${esc(ta.name)}" onerror="this.style.opacity=0.15">
+        <span>${esc(ta.name)}</span>
+      </button>
+      <button class="team-btn" onclick="submitResult('${bId}')">
+        <img src="${esc(tb.logo)}" alt="${esc(tb.name)}" onerror="this.style.opacity=0.15">
+        <span>${esc(tb.name)}</span>
+      </button>`;
+
+    document.getElementById('result-modal').classList.remove('hidden');
+  }
+
+  function closeResultModal() {
+    document.getElementById('result-modal').classList.add('hidden');
+    pending = null;
+  }
+
+  function submitResult(winnerId) {
+    if (!pending) return;
+    db.ref(`/results/${pending.key}`).set({
+      a: pending.aId, b: pending.bId,
+      winner: winnerId,
+      at: Date.now()
+    });
+    closeResultModal();
+  }
+
+  function clearResult() {
+    if (!pending) return;
+    db.ref(`/results/${pending.key}`).remove();
+    closeResultModal();
+  }
+
+  // ── ADD TEAM MODAL ───────────────────────────────────────────────────────
+  function openAddTeam() {
+    document.getElementById('team-name-input').value = '';
+    document.getElementById('team-logo-input').value = '';
+    document.getElementById('logo-preview').classList.add('hidden');
+    document.getElementById('add-modal').classList.remove('hidden');
+    setTimeout(() => document.getElementById('team-name-input').focus(), 50);
+  }
+
+  function closeAddModal() {
+    document.getElementById('add-modal').classList.add('hidden');
+  }
+
+  function updatePreview() {
+    const name  = document.getElementById('team-name-input').value.trim();
+    const logo  = document.getElementById('team-logo-input').value.trim();
+    const wrap  = document.getElementById('logo-preview');
+    if (logo) {
+      document.getElementById('preview-img').src = logo;
+      document.getElementById('preview-label').textContent = name || '(enter name above)';
+      wrap.classList.remove('hidden');
+    } else {
+      wrap.classList.add('hidden');
+    }
+  }
+
+  function submitTeam() {
+    const name = document.getElementById('team-name-input').value.trim();
+    const logo = document.getElementById('team-logo-input').value.trim();
+    if (!name || !logo) { alert('Please enter both a name and a logo URL.'); return; }
+    db.ref('/teams').push({ name, logo, addedAt: Date.now() });
+    closeAddModal();
+  }
+
+  // Close modals on backdrop click
+  document.getElementById('result-modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeResultModal();
+  });
+  document.getElementById('add-modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeAddModal();
+  });
+
+  function esc(str) {
+    return String(str ?? '')
+      .replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+      .replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>
