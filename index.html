@@ -284,30 +284,35 @@
     .no-results { padding: 10px 12px; color: #6e7681; font-size: 0.85rem; }
     .loading-teams { padding: 10px 12px; color: #6e7681; font-size: 0.85rem; }
 
-    .selected-team-display {
+    .queue-list {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    .queue-item {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px;
+      gap: 10px;
+      padding: 8px 10px;
       background: #21262d;
-      border: 1px solid #388bfd;
+      border: 1px solid #30363d;
       border-radius: 8px;
-      margin-top: 8px;
     }
-    .selected-team-display img { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; }
-    .selected-team-display .sel-name { font-size: 0.95rem; font-weight: 700; }
-    .selected-team-display .sel-full { font-size: 0.75rem; color: #8b949e; }
-    .btn-deselect {
-      margin-left: auto;
+    .queue-item img { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; }
+    .queue-item .q-name { font-size: 0.88rem; font-weight: 600; flex: 1; }
+    .btn-remove-queue {
       background: none;
       border: none;
       color: #6e7681;
       cursor: pointer;
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       line-height: 1;
-      padding: 0 4px;
+      padding: 0 2px;
     }
-    .btn-deselect:hover { color: #e6edf3; }
+    .btn-remove-queue:hover { color: #f85149; }
 
     .empty-state {
       color: #6e7681;
@@ -358,17 +363,10 @@
       <input type="text" id="team-search-input" placeholder="Type to search..." oninput="filterTeams()" autocomplete="off">
       <div class="team-results hidden" id="team-results"></div>
     </div>
-    <div class="selected-team-display hidden" id="selected-display">
-      <img id="sel-logo" src="" alt="">
-      <div>
-        <div class="sel-name" id="sel-name"></div>
-        <div class="sel-full" id="sel-full"></div>
-      </div>
-      <button class="btn-deselect" onclick="clearSelection()">×</button>
-    </div>
+    <div class="queue-list hidden" id="queue-list"></div>
     <div class="modal-actions" style="margin-top:20px">
       <button class="btn-cancel" onclick="closeAddModal()">Cancel</button>
-      <button class="btn-submit" onclick="submitTeam()">Add Team</button>
+      <button class="btn-submit" id="btn-add-teams" onclick="submitTeam()" disabled style="opacity:0.5">Add Teams</button>
     </div>
   </div>
 </div>
@@ -721,7 +719,7 @@
   ].map(t => ({ ...t, logo: `https://a.espncdn.com/i/teamlogos/ncaa/500/${t.id}.png` }));
 
   let filteredList = [];
-  let selectedTeam = null;
+  let teamQueue    = [];
 
   function filterTeams() {
     const q   = document.getElementById('team-search-input').value.trim().toLowerCase();
@@ -750,26 +748,48 @@
   }
 
   function selectTeam(i) {
-    selectedTeam = filteredList[i];
+    const t = filteredList[i];
+    if (teamQueue.some(q => q.name === t.name)) return;
+    teamQueue.push(t);
     document.getElementById('team-search-input').value = '';
     document.getElementById('team-results').classList.add('hidden');
-    document.getElementById('sel-logo').src  = selectedTeam.logo;
-    document.getElementById('sel-name').textContent = selectedTeam.name;
-    document.getElementById('sel-full').textContent = selectedTeam.fullName;
-    document.getElementById('selected-display').classList.remove('hidden');
-  }
-
-  function clearSelection() {
-    selectedTeam = null;
-    document.getElementById('selected-display').classList.add('hidden');
+    renderQueue();
     document.getElementById('team-search-input').focus();
   }
 
+  function removeFromQueue(i) {
+    teamQueue.splice(i, 1);
+    renderQueue();
+  }
+
+  function renderQueue() {
+    const wrap = document.getElementById('queue-list');
+    const btn  = document.getElementById('btn-add-teams');
+    if (!teamQueue.length) {
+      wrap.classList.add('hidden');
+      wrap.innerHTML = '';
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      btn.textContent = 'Add Teams';
+      return;
+    }
+    wrap.classList.remove('hidden');
+    wrap.innerHTML = teamQueue.map((t, i) => `
+      <div class="queue-item">
+        <img src="${esc(t.logo)}" alt="${esc(t.name)}" onerror="this.style.opacity=0.15">
+        <span class="q-name">${esc(t.name)}</span>
+        <button class="btn-remove-queue" onclick="removeFromQueue(${i})">×</button>
+      </div>`).join('');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.textContent = `Add ${teamQueue.length} Team${teamQueue.length > 1 ? 's' : ''}`;
+  }
+
   function openAddTeam() {
-    selectedTeam = null;
+    teamQueue = [];
     document.getElementById('team-search-input').value = '';
     document.getElementById('team-results').classList.add('hidden');
-    document.getElementById('selected-display').classList.add('hidden');
+    renderQueue();
     document.getElementById('add-modal').classList.remove('hidden');
     setTimeout(() => document.getElementById('team-search-input').focus(), 50);
   }
@@ -779,8 +799,11 @@
   }
 
   function submitTeam() {
-    if (!selectedTeam) { alert('Please select a team.'); return; }
-    db.ref('/teams').push({ name: selectedTeam.name, logo: selectedTeam.logo, addedAt: Date.now() });
+    if (!teamQueue.length) return;
+    const now = Date.now();
+    teamQueue.forEach((t, i) => {
+      db.ref('/teams').push({ name: t.name, logo: t.logo, addedAt: now + i });
+    });
     closeAddModal();
   }
 
