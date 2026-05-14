@@ -302,7 +302,19 @@
       border-radius: 8px;
     }
     .queue-item img { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; }
-    .queue-item .q-name { font-size: 0.88rem; font-weight: 600; flex: 1; }
+    .queue-item .q-name { font-size: 0.88rem; font-weight: 600; }
+    .queue-item input {
+      flex: 1;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 5px;
+      padding: 5px 8px;
+      color: #e6edf3;
+      font-size: 0.82rem;
+      outline: none;
+      min-width: 0;
+    }
+    .queue-item input:focus { border-color: #388bfd; }
     .btn-remove-queue {
       background: none;
       border: none;
@@ -475,6 +487,7 @@
             <img class="row-logo" src="${esc(row.logo)}" alt="${esc(row.name)}" onerror="this.style.opacity=0.15">
             <div>
               <div class="row-name">${esc(row.name)}</div>
+              ${row.playerName ? `<div style="font-size:0.75rem;color:#58a6ff;margin-top:1px;">${esc(row.playerName)}</div>` : ''}
               <div class="row-record">${rec.w} – ${rec.l}</div>
             </div>
           </div>
@@ -537,7 +550,10 @@
         <td class="rank-num">${i + 1}</td>
         <td><div class="team-cell">
           <img class="s-logo" src="${esc(t.logo)}" alt="${esc(t.name)}" onerror="this.style.opacity=0.15">
-          <span>${esc(t.name)}</span>
+          <div>
+            <div>${esc(t.name)}</div>
+            ${t.playerName ? `<div style="font-size:0.72rem;color:#58a6ff;">${esc(t.playerName)}</div>` : ''}
+          </div>
         </div></td>
         <td class="num">${t.w}</td>
         <td class="num">${t.l}</td>
@@ -829,6 +845,8 @@
       <div class="queue-item">
         <img src="${esc(t.logo)}" alt="${esc(t.name)}" onerror="this.style.opacity=0.15">
         <span class="q-name">${esc(t.name)}</span>
+        <input type="text" placeholder="Player name" value="${esc(t.playerName || '')}"
+          oninput="teamQueue[${i}].playerName = this.value">
         <button class="btn-remove-queue" onclick="removeFromQueue(${i})">×</button>
       </div>`).join('');
     btn.disabled = false;
@@ -853,7 +871,7 @@
     if (!teamQueue.length) return;
     const now = Date.now();
     teamQueue.forEach((t, i) => {
-      db.ref('/teams').push({ name: t.name, logo: t.logo, addedAt: now + i });
+      db.ref('/teams').push({ name: t.name, logo: t.logo, playerName: t.playerName || '', addedAt: now + i });
     });
     closeAddModal();
   }
