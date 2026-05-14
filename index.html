@@ -587,34 +587,43 @@
   let filteredList = [];
   let selectedTeam = null;
 
-  async function fetchESPNTeams() {
-    if (espnTeams) return;
-    const res  = document.getElementById('team-results');
-    res.innerHTML = '<div class="loading-teams">Loading teams...</div>';
-    res.classList.remove('hidden');
-    try {
-      const r    = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams?limit=1000');
-      const data = await r.json();
-      espnTeams  = data.sports[0].leagues[0].teams
-        .map(t => ({
-          name:     t.team.shortDisplayName || t.team.displayName,
-          fullName: t.team.displayName,
-          logo:     t.team.logos?.[0]?.href || ''
-        }))
-        .filter(t => t.logo)
-        .sort((a, b) => a.name.localeCompare(b.name));
-    } catch(e) {
-      espnTeams = [];
-    }
-    res.innerHTML = '';
-    res.classList.add('hidden');
+  let espnFetchPromise = null;
+
+  function fetchESPNTeams() {
+    if (espnTeams !== null) return Promise.resolve();
+    if (espnFetchPromise) return espnFetchPromise;
+    espnFetchPromise = fetch('https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams?limit=1000')
+      .then(r => r.json())
+      .then(data => {
+        espnTeams = data.sports[0].leagues[0].teams
+          .map(t => ({
+            name:     t.team.shortDisplayName || t.team.displayName,
+            fullName: t.team.displayName,
+            logo:     t.team.logos?.[0]?.href || ''
+          }))
+          .filter(t => t.logo)
+          .sort((a, b) => a.name.localeCompare(b.name));
+      })
+      .catch(() => { espnTeams = []; });
+    return espnFetchPromise;
   }
 
-  function filterTeams() {
+  async function filterTeams() {
     const q   = document.getElementById('team-search-input').value.trim().toLowerCase();
     const res = document.getElementById('team-results');
     if (!q) { res.innerHTML = ''; res.classList.add('hidden'); return; }
-    if (!espnTeams?.length) { fetchESPNTeams(); return; }
+
+    if (!espnTeams) {
+      res.innerHTML = '<div class="loading-teams">Loading teams...</div>';
+      res.classList.remove('hidden');
+      await fetchESPNTeams();
+    }
+
+    if (!espnTeams?.length) {
+      res.innerHTML = '<div class="no-results">Could not load teams</div>';
+      res.classList.remove('hidden');
+      return;
+    }
 
     filteredList = espnTeams
       .filter(t => t.name.toLowerCase().includes(q) || t.fullName.toLowerCase().includes(q))
